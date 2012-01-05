@@ -1,0 +1,24 @@
+Cliffs Notes: SQL Server doesn't handle quoted fields in csv files when using bulk insert. it chokes on commas inside quotes fields. I wrote a program to re-delimit CSV files with a custom delimiter that SQL Server can use.
+
+Details:
+
+For a project recently I had to import some .csv files into Microsoft SQL Server. Normally this is a piece of cake to do with BULK INSERT as below:
+
+BULK INSERT MyTable
+FROM 'C:\FileCreatedFromThisFunction.csv'
+WITH
+(
+FIELDTERMINATOR = ',',
+ROWTERMINATOR = '\n'
+)
+
+But in this case it wasn't so easy. My comma-delimited file had some fields that were inside of quotes, and those quoted fields sometimes contained commas. Even more problematically, sometimes my quoted fields contained "" - escaped quotes. An example:
+USA,1,1/21/10,"""FORWARD!"",George Washington cried",6
+
+Incredibly, though Excel handles this flawlessly, SQL Server totally chokes. It's even documented that it chokes. From MSDN:
+     To be usable as a data file for bulk import, a CSV file must comply with the following restrictions:
+
+     - Data fields never contain the field terminator.
+     - Either none or all of the values in a data field are enclosed in quotation marks ("")
+
+The only solution I can see is to write a text processor to replace delimiting commas with a new delimiter - one that will never appear in the quoted text. I've written a short vb.net WinForms program I call "ReDelimIt" (clever, I know) to do just this.
